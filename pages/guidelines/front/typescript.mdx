@@ -1,0 +1,474 @@
+# TypeScript Style Guide
+
+A mostly reasonable approach to TypeScript
+
+This style guide is mostly based on the standards that are currently prevalent in [JavaScript](../README.md), although some conventions may still be included or prohibited on a case-by-case basis.
+
+## Table of Contents
+
+1. [Naming Conventions](#naming-conventions)
+1. [`null` vs. `undefined`](#null-vs-undefined)
+1. [Single vs. Double Quotes](#quotes)
+1. [Tabs vs. Spaces](#spaces)
+1. [Use semicolons](#semicolons)
+1. [Annotate Arrays as `Type[]`](#array)
+1. [`type` vs `interface`](#type-vs-interface)
+1. [Unknown Type](#unknown-type)
+1. [Generics](#generics)
+1. [Barrel](#barrel)
+1. [Extending string-based Enums](#extending-string-based-enums)
+1. [Resources](#resources)
+
+## Naming Conventions
+
+### Variable and Function
+
+- Use `camelCase` for variable and function names
+
+> Reason: Conventional JavaScript
+
+```javascript
+// bad
+var FooVar;
+
+function BarFunc() { }
+
+// good
+var fooVar;
+
+function barFunc() { }
+```
+
+**[⬆ back to top](#table-of-contents)**
+
+### Class
+
+- Use `PascalCase` for class names.
+
+> Reason: This is actually fairly conventional in standard JavaScript.
+
+```javascript
+// bad
+class foo { }
+
+// good
+class Foo { }
+```
+
+- Use `camelCase` of class members and methods
+
+> Reason: Naturally follows from variable and function naming convention.
+
+```javascript
+// bad
+class Foo {
+    Bar: number;
+    Baz() { }
+}
+
+// good
+class Foo {
+    bar: number;
+    baz() { }
+}
+```
+
+**[⬆ back to top](#table-of-contents)**
+
+### Interface
+
+- Use `PascalCase` for name.
+
+> Reason: Similar to class
+
+- Use `camelCase` for members.
+
+> Reason: Similar to class
+
+- **Don't** prefix with `I`
+
+> Reason: Unconventional. `lib.d.ts` defines important interfaces without an `I` (e.g. Window, Document etc).
+
+```javascript
+// bad
+interface IFoo {
+}
+
+// good
+interface Foo {
+}
+```
+
+**[⬆ back to top](#table-of-contents)**
+
+#### Data transfer object interfaces
+
+In a normal workflow the use of some method to request data to the Backend, as a good practice is recommend set the correct types and interfaces for the response. The gap here between Frontend code and the Backend code is the way they build their DTO, so if is used a Swagger parser script or Spotlight API, the result will be a DTO with `snake_case` properties. For that reason, the interfaces came to help for differentiate between DTO and custom properties objects.
+
+The proposal suggest use the DTO namespace at the end for interfaces like `AccountDTO` with `readonly` properties and interface `Account` will extend from it, where can be included custom properties. Read more about `readonly` properties [here](https://www.typescriptlang.org/docs/handbook/interfaces.html#readonly-properties)
+
+```typescript
+// bad
+interface Account {
+  phone_number: string;
+  first_name: string;
+  fullAddress: string;
+}
+
+// good
+interface AccountDTO {
+  readonly phone_number: string;
+  readonly first_name: string;
+  readonly last_name: string;
+}
+
+interface Account extends AccountDTO {
+  firstLastname: string;
+  customProperty: unknown;
+}
+```
+
+**[⬆ back to top](#table-of-contents)**
+
+### Type
+
+- Use `PascalCase` for name.
+
+> Reason: Similar to class
+
+- Use `camelCase` for members.
+
+> Reason: Similar to class
+
+**[⬆ back to top](#table-of-contents)**
+
+### Namespace
+
+- Use `PascalCase` for names
+
+> Reason: Convention followed by the TypeScript team. Namespaces are effectively just a class with static members. Class names are `PascalCase` => Namespace names are `PascalCase`
+
+```javascript
+// bad
+namespace foo {
+}
+
+// good
+namespace Foo {
+}
+```
+
+**[⬆ back to top](#table-of-contents)**
+
+### Enum
+
+- Use `PascalCase` for enum names
+
+> Reason: Similar to Class. Is a Type.
+
+```javascript
+// bad
+enum color {
+}
+
+// good
+enum Color {
+}
+```
+
+- Use `PascalCase` for enum member
+
+> Reason: Convention followed by TypeScript team i.e. the language creators e.g `SyntaxKind.StringLiteral`. Also helps with translation (code generation) of other languages into TypeScript.
+
+```javascript
+// bad
+enum Color {
+    red
+}
+
+// good
+enum Color {
+    Red
+}
+```
+
+**[⬆ back to top](#table-of-contents)**
+
+## Null vs. Undefined
+
+- Prefer not to use either for explicit unavailability
+
+> Reason: these values are commonly used to keep a consistent structure between values. In TypeScript you use _types_ to denote the structure
+
+```javascript
+// bad
+let foo = { x: 123, y: undefined };
+
+// good
+let foo: { x: number, y?: number } = { x: 123 };
+```
+
+- Use `undefined` in general (do consider returning an object like `{ valid: boolean, value ?: Foo }` instead)
+
+```javascript
+// bad
+return null;
+
+// good
+return undefined;
+```
+
+- Use `null` where its a part of the API or conventional
+
+> Reason: It is conventional in Node.js e.g. `error` is `null` for NodeBack style callbacks.
+
+```javascript
+// bad
+cb(undefined)
+
+// good
+cb(null)
+```
+
+- Use _truthy_ check for **objects** being `null` or `undefined`
+
+```javascript
+// bad
+if (error === null)
+
+// good
+if (error)
+```
+
+**[⬆ back to top](#table-of-contents)**
+
+## Quotes
+
+- Prefer single quotes (`'`) unless escaping.
+
+> Reason: More JavaScript teams do this (e.g. [airbnb](https://github.com/airbnb/javascript), [standard](https://github.com/feross/standard), [npm](https://github.com/npm/npm), [node](https://github.com/nodejs/node), [google/angular](https://github.com/angular/angular/), [facebook/react](https://github.com/facebook/react)). Its easier to type (no shift needed on most keyboards). [Prettier team recommends single quotes as well](https://github.com/prettier/prettier/issues/1105)
+> Double quotes are not without merit: Allows easier copy paste of objects into JSON. Allows people to use other languages to work without changing their quote character. Allows you to use apostrophes e.g. `He's not going.`. But I'd rather not deviate from where the JS Community is fairly decided.
+
+- When you can't use double quotes, try using back ticks (\`).
+
+> Reason: These generally represent the intent of complex enough strings.
+
+**[⬆ back to top](#table-of-contents)**
+
+## Spaces
+
+- Use `2` spaces. Not tabs.
+
+> Reason: More JavaScript teams do this (e.g. [airbnb](https://github.com/airbnb/javascript), [idiomatic](https://github.com/rwaldron/idiomatic.js), [standard](https://github.com/feross/standard), [npm](https://github.com/npm/npm), [node](https://github.com/nodejs/node), [google/angular](https://github.com/angular/angular/), [facebook/react](https://github.com/facebook/react)). The TypeScript/VSCode teams use 4 spaces but are definitely the exception in the ecosystem.
+
+**[⬆ back to top](#table-of-contents)**
+
+## Semicolons
+
+- Use semicolons.
+
+> Reasons: Explicit semicolons helps language formatting tools give consistent results. Missing ASI (automatic semicolon insertion) can trip new devs e.g. `foo() \n (function(){})` will be a single statement (not two). TC39 [warning on this as well](https://github.com/tc39/ecma262/pull/1062). Example teams: [airbnb](https://github.com/airbnb/javascript), [idiomatic](https://github.com/rwaldron/idiomatic.js), [google/angular](https://github.com/angular/angular/), [facebook/react](https://github.com/facebook/react), [Microsoft/TypeScript](https://github.com/Microsoft/TypeScript/).
+
+**[⬆ back to top](#table-of-contents)**
+
+## Array
+
+- Annotate arrays as `foos: Foo[]` instead of `foos: Array<Foo>`.
+
+> Reasons: Its easier to read. Its used by the TypeScript team. Makes easier to know something is an array as the mind is trained to detect `[]`.
+
+**[⬆ back to top](#table-of-contents)**
+
+## type vs. interface
+
+- Use `type` when you _might_ need a union or intersection:
+
+```javascript
+type Foo = number | { someProperty: number }
+```
+
+- Use `interface` when you want `extends` or `implements` e.g
+
+```javascript
+interface Foo {
+  foo: string;
+}
+
+interface FooBar extends Foo {
+  bar: string;
+}
+
+class X implements FooBar {
+  foo: string;
+  bar: string;
+}
+```
+
+**[⬆ back to top](#table-of-contents)**
+
+## Unknown Type
+
+The main difference between unknown and any is that unknown is much less permissive than any: we have to do some form of checking before performing most operations on values of type unknown, whereas we don't have to do any checks before performing operations on values of type any. More info: [TypeScript unknown Top Type](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-0.html#new-unknown-top-type) and [The unknown Type in TypeScript](https://mariusschulz.com/blog/the-unknown-type-in-typescript).
+
+```javascript
+let vAny: any = 10;          // We can assign anthing to any
+let vUnknown: unknown =  10; // We can assign anthing to unknown just like any
+
+
+let s1: string = vAny;     // Any is assigable to anything
+let s2: string = vUnknown; // Invalid we can't assign vUnknown to any other type (without an explicit assertion)
+
+vAny.method();     // ok anything goes with any
+vUnknown.method(); // not ok, we don't know anything about this variable
+```
+
+**[⬆ back to top](#table-of-contents)**
+
+## Generics
+
+The implementation of generics in Typescript give us the ability to pass in a range of types to a component, adding an extra layer of abstraction and re-usability to your code. Generics can be applied to functions, interfaces and classes in Typescript. More info: [TypeScript Generics](https://www.typescriptlang.org/docs/handbook/generics.html) and [Typescript Generics Explained](https://medium.com/@rossbulat/typescript-generics-explained-15c6493b510f).
+
+```javascript
+// bad
+class Queue {
+  private data = [];
+  push(item) { this.data.push(item); }
+  pop() { return this.data.shift(); }
+}
+
+const queue = new Queue();
+queue.push(0);
+queue.push("1"); // Oops a mistake
+
+// good
+class Queue<T> {
+  private data = [];
+  push(item: T) { this.data.push(item); }
+  pop(): T | undefined { return this.data.shift(); }
+}
+
+const queue = new Queue<number>();
+queue.push(0);
+queue.push("1"); // ERROR : cannot push a string. Only numbers allowed
+```
+
+Use meaningful names for generics parameters
+
+```javascript
+// bad
+class Queue<T> {}
+
+// good
+class Queue<QueueType> {}
+```
+
+**[⬆ back to top](#table-of-contents)**
+
+## Barrel
+
+A barrel is a way to rollup exports from several modules into a single convenient module. The barrel itself is a module file that re-exports selected exports of other modules.
+
+Imagine the following class structure in a library:
+
+```javascript
+// demo/foo.ts
+export class Foo {}
+
+// demo/bar.ts
+export class Bar {}
+
+// demo/baz.ts
+export class Baz {}
+```
+
+Without a barrel, a consumer would need three import statements:
+
+```javascript
+import { Foo } from '../demo/foo';
+import { Bar } from '../demo/bar';
+import { Baz } from '../demo/baz';
+```
+
+You can instead add a barrel `demo/index.ts` containing the following:
+
+```javascript
+// demo/index.ts
+export * from './foo'; // re-export all of its exports
+export * from './bar'; // re-export all of its exports
+export * from './baz'; // re-export all of its exports
+```
+
+Now the consumer can import what it needs from the barrel:
+
+```javascript
+import { Foo, Bar, Baz } from '../demo'; // demo/index.ts is implied
+```
+
+### Named exports
+
+Instead of exporting `*`, you can choose to export the module in a name. E.g., assume that `baz.ts` has functions:
+
+```javascript
+// demo/foo.ts
+export class Foo {}
+
+// demo/bar.ts
+export class Bar {}
+
+// demo/baz.ts
+export function getBaz() {}
+export function setBaz() {}
+```
+
+If you would rather not export `getBaz` / `setBaz` from demo you can instead put them in a variable by importing them in a name and exporting that name as shown below:
+
+```javascript
+// demo/index.ts
+export * from './foo'; // re-export all of its exports
+export * from './bar'; // re-export all of its exports
+
+import * as baz from './baz'; // import as a name
+export { baz }; // export the name
+```
+
+And now the consumer would look like:
+
+```javascript
+import { Foo, Bar, baz } from '../demo'; // demo/index.ts is implied
+
+// usage
+baz.getBaz();
+baz.setBaz();
+// etc. ...
+```
+
+**[⬆ back to top](#table-of-contents)**
+
+## Extending string-based Enums
+
+Mixed enum/type ([more info](https://github.com/Microsoft/TypeScript/issues/17592)):
+
+```javascript
+const BasicEvents = {
+  Start: 'Start' as 'Start',
+  Finish: 'Finish' as 'Finish'
+};
+
+type BasicEvents = (typeof BasicEvents)[keyof typeof BasicEvents];
+
+const AdvEvents = {
+  ...BasicEvents,
+  Pause: 'Pause' as 'Pause',
+  Resume: 'Resume' as 'Resume'
+};
+
+type AdvEvents = (typeof AdvEvents)[keyof typeof AdvEvents];
+```
+
+**[⬆ back to top](#table-of-contents)**
+
+## Resources
+
+- [TypeScript StyleGuide and Coding Conventions](https://github.com/basarat/typescript-book/blob/master/docs/styleguide/styleguide.md)
+
+**[⬆ back to top](#table-of-contents)**
