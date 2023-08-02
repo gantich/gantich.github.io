@@ -1,0 +1,229 @@
+# Gitflow Workflow
+
+The Gitflow Workflow defines a strict branching model designed around the project release. This provides a robust framework for managing larger projects.
+
+Gitflow is ideally suited for projects that have a scheduled release cycle. This workflow doesn't add any new concepts or commands beyond what's required for the [Feature Branch Workflow](./GIT_FEATURE_BRANCH.md). Instead, it assigns very specific roles to different branches and defines how and when they should interact.
+
+{/*
+## Table of Contents
+
+1. [TL;DR](#tldr)
+1. [Branch strategy](#branch-strategy)
+   1. [Feature branches](#feature-branches)
+   1. [Bugfix branches](#bugfix-branches)
+   1. [Story branches](#story-branches)
+   1. [Release branches](#release-branches)
+   1. [Hotfix branches](#hotfix-branches)
+1. [Branch name convention](#branch-name-convention)
+   1. [Feature and Story](#feature-and-story)
+   1. [Release and Hotfix](#release-and-hotfix)
+1. [Pull Requests](#pull-requests)
+   1. [Pull requests in a git-flow model](#pull-requests-in-a-git-flow-model)
+*/}
+## TL;DR
+
+Follow the **branch strategy** proposed by git-flow and rely on the **pull request** process to perform code reviews among teammates.
+
+Instead of `git flow feature finish`, do merge using the pull request platform merging tool.
+
+**[^ back to top](#table-of-contents)**
+
+## Branch strategy
+
+⚠️ **Note:** In the following lines the strategy of branches to follow and that is considered the basis of everything is explained, but due to the different workflows in the projects, the procedures can be altered and will be documented independently (check the [pull request section](#pull-requests)).
+
+The different types of branches we may use are described in [branch naming convention](../README.md#branch-naming-convention).
+
+💡 **Pro tip:** There is a tool called [git-flow](https://github.com/petervanderdoes/gitflow-avh) to simplify the workflow management. git-flow are a set of git extensions to provide high-level repository operations. (more info, install).
+
+### Feature branches
+
+Created for short-lived running feature development. May make occasional merges from _develop_ to keep it up to date.
+
+May branch off from: _develop_
+
+```bash
+# manual way:
+git checkout -b feature/CORE-1_project-skeleton develop
+
+# git-flow way:
+git flow feature start CORE-1_project-skeleton
+```
+
+Must merge back into: _develop_
+
+```bash
+# manual way:
+git checkout develop
+git merge --no-ff feature/CORE-1_project-skeleton
+git branch -d feature/CORE-1_project-skeleton
+
+# git-flow way:
+git flow feature finish CORE-1_project-skeleton
+
+# push develop branch
+git push origin develop
+```
+
+### Bugfix branches
+
+Patches that need to be made to develop are applied to a _bugfix_ branch off _develop_.
+
+May branch off from: _develop_
+
+```bash
+# manual way:
+git checkout -b bugfix/CORE-1_fix-project-skeleton develop
+
+# git-flow way:
+git flow bugfix start CORE-1_fix-project-skeleton
+```
+
+Must merge back into: _develop_
+
+```bash
+# manual way:
+git checkout develop
+git merge --no-ff bugfix/CORE-1_fix-project-skeleton
+git branch -d bugfix/CORE-1_fix-project-skeleton
+
+# git-flow way:
+git flow bugfix finish CORE-1_fix-project-skeleton
+
+# push develop branch
+git push origin develop
+```
+
+### Story branches
+
+Story branches are created if these are long-lived and not merged quickly back to development (as _feature_ branches are), e.g. trying something we have no idea if it will become a _feature_ or a _release_.
+
+May branch off from: _develop_
+
+```bash
+# manual way:
+git checkout -b story/new-onboarding develop
+```
+
+Must merge back into: _develop_
+
+```bash
+# manual way:
+git checkout develop
+git merge --no-ff story/new-onboarding
+git branch -d story/new-onboarding
+
+# push develop branch
+git push origin develop
+```
+
+### Release branches
+
+Release branches are created when the _develop_ branch is at a stable point and release specific changes need to be made, such as bumping version numbers, etc.
+
+At that point, _develop_ should be branched and the changes made before ultimately merging it into _master_ and tagging the release.
+
+There should only be **one active _release_ branch at a time**.
+
+Until the current release is wrapped up, merged into _master_ and deleted, development of the next release should take place on _develop_. When _develop_ reaches another state of stability for release, another _release_ branch is created.
+
+May branch off from: _develop_
+
+```bash
+# manual way:
+git checkout -b release/1.2.0 develop
+git commit -a -m "v1.2.0"
+
+# git-flow way:
+git flow release start 1.2.0
+```
+
+Bug fixes made on a _release_ branch may be merged back into _develop_ continuously if needed, though ultimately they will be merged in when the release is finalized.
+
+Must merge back into: _develop_ and _master_
+
+```bash
+# manual way:
+git checkout master
+git merge --no-ff release/1.2.0
+git tag 1.2.0
+
+git checkout develop
+git merge --no-ff release/1.2.0
+
+git branch -d release/1.2.0
+
+# git-flow way:
+git flow release finish 1.2.0
+```
+
+### Hotfix branches
+
+Patches that need to be made to a production release are applied to a _hotfix_ branch off _master_.
+
+May branch off from: _master_
+
+```bash
+# manual way:
+git checkout -b hotfix/1.2.1 master
+
+# git-flow way:
+git flow hotfix start 1.2.1
+
+git commit -m "Fix server X problem"
+```
+
+Must merge back into: _develop_ and _master_
+
+```bash
+# manual way:
+git checkout master
+git merge --no-ff hotfix/1.2.1
+git tag 1.2.1
+git checkout develop
+git merge --no-ff hotfix/1.2.1
+git branch -d hotfix/1.2.1
+
+# git-flow way:
+git flow hotfix finish 1.2.1
+```
+
+**[^ back to top](#table-of-contents)**
+
+## Branch name convention
+
+### Feature and Story
+
+The name convention for **feature** and **story** branches follows:
+
+- feature: _feature/JIRA-TASK-ID_task-description_
+- story: _story/JIRA-TASK-ID_task-description_
+
+### Release and Hotfix
+
+The name convention for **release** and **hotfix** branches follows:
+
+- release: _release/x.y.0_
+- hotfix: _hotfix/x.y.z_
+
+Following [semantic versioning](../README.md#semantic-versioning).
+
+**[^ back to top](#table-of-contents)**
+
+## Pull Requests
+
+The pull requests process is described in [git/README.md](../README.md#pull-requests)
+
+### Pull requests in a git-flow model
+
+Use the **pull requests only** to perform the **merges to develop or to a story branch**.
+
+- **develop branch**: A pull request is created by developers from their respective feature branches to merge code to the _develop_ branch. Usually, a pull request is created after features are completed. A pull request is merged into the _develop_ branch by the PR creator.
+
+Pull requests for **release** and **hotfix** can be created to get feedback from other teammates but will be closed **following the git-flow on a local machine**.
+
+**[^ back to top](#table-of-contents)**
+
+
+
+[git-flow-commands]: ../assets/git-flow-commands.png "git-flow commands"

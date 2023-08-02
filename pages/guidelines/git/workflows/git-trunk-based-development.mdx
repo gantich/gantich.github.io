@@ -1,0 +1,20 @@
+# Git Trunk Based Development Workflow
+
+Trunk Based Development (TBD) has developers iterating on a single branch that is the "trunk" (usually _master_). TBD discourages long-lived feature branches and lends itself to quick iteration due to its single branch nature. This workflow makes heavy use of `git rebase` as opposed to `git merge`.
+
+⚠️ **Disclaimer:** The TBD workflow and this documentation is for informative purposes and is not in use, since it **is not used by any project within the company nowadays**
+
+## Workflow
+
+1. Create a short-lived _feature_ branch from master
+1. Work and commit changes there, ideally, these should be as thoroughly tested as possible locally and in CI server
+1. When ready to merge to _master_, **rebase** it against the short-lived branch to make sure any new changes to it don't conflict with the _feature_ branch and that fast forward merge can be done.
+1. Merge and squash (or rebase squash and then merge) _feature_ branch to _master_.
+
+💡 Every commit in _master_ should represent a working state, if changes are not ready, use **feature flags** to disable them until they are.
+
+## Useful resources
+
+- [trunkbaseddevelopment.com](https://trunkbaseddevelopment.com/)
+- [Trunk-Based Development for Beginners](https://www.nebulaworks.com/blog/2020/02/22/trunk-based-development-for-beginners/)
+- [Git to know this before you do Trunk Based Development (TBD)](https://medium.com/factualopinions/git-to-know-this-before-you-do-trunk-based-development-tbd-476bc8a7c22f)
