@@ -1,0 +1,127 @@
+# NPM enterprise registry
+
+Install (and publish) packages from our private npm registry (https://registry.company.io/).
+
+> More info: https://docs.npmjs.com/logging-in-to-an-npm-enterprise-registry-from-the-command-line>
+
+## Company enterprise registry
+
+**Endpoints:**
+
+- group (https://registry.company.io/repository/npm/): combines proxy and hosted endpoints. Fetch NPM packages, to be used by company projects (_read-only_ mode)
+- proxy (https://registry.company.io/repository/npm-proxy/): official remote repository being proxied https://registry.npmjs.org> (_read-only_ mode)
+- hosted (https://registry.company.io/repository/npm-hosted/): repository to host private packages (_write_ mode)
+
+### Registry endpoint migration
+
+It is recommended to migrate from the old alias registry `https://registry.company.io` endpoint to `https://registry.company.io`.
+
+If the project is stil using the old alias `https://registry.company.io`, replace the npm commands below with this endpoint until the project is migrated to the new alias endpoint.
+
+In GitHub workflows, the URL registry secrets should be used based on the endpoint used in the project at the time:
+
+- `secrets.ORG_CORE_NEXUS_NPM_company_URL`: `https://registry.company.io`
+- `secrets.ORG_CORE_NEXUS_NPM_URL`: `https://registry.company.io`
+
+## Registry configuration file
+
+Any Node.js project installing packages from registries other than the default one requires a `.npmrc` configuration file:
+
+### Project (read-only)
+
+For projects that only need to install dependencies from the registry (don't need to publish anything): create a `.npmrc` file in your project root (next to `package.json`) with the following contents:
+
+**_.npmrc_:**
+
+```conf
+registry = https://registry.company.io/repository/npm/
+```
+
+> More info: https://docs.npmjs.com/configuring-npm/npmrc.html>
+
+### Library (write)
+
+Projects that also publish packages to the company registry: update your `package.json` file adding:
+
+**_package.json_:**
+
+```json
+"publishConfig": {
+  "registry": "https://registry.company.io/repository/npm-hosted/"
+}
+```
+
+> More info: https://docs.npmjs.com/files/package.json#publishconfig>
+
+## Registry users
+
+Our private registry requires authentication, so in order to install and/or publish packages you must create a user. Having npm installed run the following command:
+
+```bash
+npm adduser --registry=https://registry.company.io/repository/npm/
+```
+
+After successful authentication, an authentication token is created and stored in the **npm user's configuration file** (`~/.npmrc`).
+
+> More info: https://docs.npmjs.com/cli/adduser>
+
+### Credentials
+
+The company enterprise registry credentials are hosted in Keeper, the company's secret management tool:
+
+- Web projects (read only): `[wg-it] Nexus Repository Manager (company-web)`
+- Server projects (read only): `[wg-it] Nexus Repository Manager (company-server)`
+- Read & write: `[wg-it] Nexus Repository Manager (company-ci)`
+
+**Example:**
+
+```txt
+$ npm adduser --registry=https://registry.company.io/repository/npm/
+Username: company-web
+Password: ***
+Email: (this IS public) developer@company.com
+Logged in as company-web on https://registry.company.io/repository/npm/.
+...
+
+$ cat $HOME/.npmrc
+//registry.company.io/repository/npm/:_authToken=NpmToken.xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+```
+
+- Hosted registry (libraries): `npm adduser --registry=https://registry.company.io/repository/npm-hosted/`
+
+**Example:**
+
+```txt
+$ npm adduser --registry=https://registry.company.io/repository/npm-hosted/
+Username: company-ci
+Password: ***
+Email: (this IS public) developer@company.com
+Logged in as company-ci on https://registry.company.io/repository/npm-hosted/.
+...
+$ cat $HOME/.npmrc
+//registry.company.io/repository/npm/:_authToken=NpmToken.xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+```
+
+⚠️ Publishing libraries through a **GitHub actions workflow** is preferable:
+
+```yml
+- uses: actions/setup-node@v1
+  with:
+    node-version: "12.x"
+    registry-url: ${{ secrets.ORG_CORE_NEXUS_NPM_company_URL }}
+- run: npm publish
+  env:
+    NODE_AUTH_TOKEN: ${{ secrets.ORG_CORE_NEXUS_NPM_TOKEN }}
+```
+
+## Troubleshooting
+
+When a registry endpoint change is made in a project, `package-lock.json` may not be up to date and may not resolve on the new registry endpoint.
+
+To solve this remove `package-lock.json` file and `node_modules` folder and perform a clean install.
+
+```bash
+rm package-lock.json
+rm -rf node_modules
+npm install
+```

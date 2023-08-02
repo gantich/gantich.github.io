@@ -1,0 +1,361 @@
+# Git Guide
+
+{/*
+## Table of Contents
+
+- [Setup local git](#setup-local-git)
+- [Repository naming convention](#repository-naming-convention)
+- [Best practices](#best-practices)
+- [Commit message](#commit-message)
+- [Branch naming convention](#branch-naming-convention)
+- [Semantic versioning](#semantic-versioning)
+  - [Node version syntax](#node-version-syntax)
+- [Workflows](#workflows)
+- [Git hooks](#git-hooks)
+  - [Useful git hooks tools](#useful-git-hooks-tools)
+- [Pull Requests](#pull-requests)
+  - [Before creating a pull request](#before-creating-a-pull-request)
+  - [Pull request process](#pull-request-process)
+  - [Pull request template](#pull-request-template)
+  - [Complete the pull request](#complete-the-pull-request)
+  - [Close a pull request](#close-a-pull-request)
+  - [Benefits of pull requests](#benefits-of-pull-requests)
+- [Labels](#labels)
+- [Useful commands](#useful-commands)
+- [Useful resources](#useful-resources)
+  - [Talks](#talks)
+*/}
+## Setup local git
+
+1. Setup local git configuration (use the command `git config ...` as below or edit `$HOME/.gitconfig`)
+
+   ```sh
+   # git config --global user.name "John Doe"
+   git config --global user.name "$(id -F)"
+   # git config --global user.email john.doe@visyon360.com
+   git config --global user.email $(id -u -n)@visyon360.com
+   # rebase by default on git pull
+   git config --global --bool pull.rebase true
+   # only push the current branch
+   git config --global push.default current
+   # to include submodules on git status
+   git config --global status.submoduleSummary true
+   # to push annotated tags via "git push"
+   git config --global push.followTags true
+   ```
+
+   Review and fix the configuration (as example)
+
+   ```sh
+   ❯ cat $HOME/.gitconfig
+   [user]
+     name = John Doe
+     email = john.doe@visyon360.com
+   [pull]
+     rebase = true
+   [push]
+     default = current
+     followTags = true
+   [status]
+     submoduleSummary = true
+   ```
+
+2. Setup ssh key
+
+   ```sh
+   # instructions from [Generating a new SSH key and adding it to the ssh-agent - GitHub Docs](https://docs.github.com/en/github/authenticating-to-github/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent)
+   ssh-keygen -t ed25519 -C "$(git config --global user.email)"
+   eval "$(ssh-agent -s)"
+   cat >~/.ssh/config <<EOF
+   Host *
+     AddKeysToAgent yes
+     UseKeychain yes
+     IdentityFile ~/.ssh/id_ed25519
+   EOF
+   ssh-add -K ~/.ssh/id_ed25519
+   ```
+
+3. [Add a new SSH key to your GitHub account - GitHub Docs](https://docs.github.com/en/github/authenticating-to-github/adding-a-new-ssh-key-to-your-github-account)
+
+4. [Add our organization to the scoped npm resgistry](https://docs.npmjs.com/cli/v8/using-npm/scope)
+
+   ```sh
+   npm login --registry=https://packagemanager.visyonapps.com:4873 --scope=@visyon360
+   ```
+
+   or
+
+   ```sh
+   npm config set @visyon360:registry https://packagemanager.visyonapps.com:4873
+   ```
+
+## NPM package name covention
+
+All of the NPM packages from the company are scoped with `@visyon360`
+
+The format used to naming this packages for npm publishing is:
+
+`@visyon360/kebab-case-repository-name`
+
+## Repository naming convention
+
+| branch name     | description                                                    |
+| --------------- | -------------------------------------------------------------- |
+| `master`        | production releases                                            |
+| `develop`       | AKA integration branch                                         |
+| `feature/*`     | for developing short-lived _features_, branched from _develop_ |
+| `bugfix/*`      | for applying patches, branched from _develop_                  |
+| `story/*`       | for developing long-lived branches from _develop_              |
+| `release/x.y.0` | for finalizing a major/minor release, branched from _develop_  |
+| `hotfix/x.y.z`  | for applying patches, branched from _master_                   |
+
+⚠️ Before renaming a repository, consider possible side effects: local repositories, GitHub Actions, GitLab CI, Jenkins, Docker Hub, AWS, Heroku, other kind of integrations...
+
+**[^ back to top](#table-of-contents)**
+
+## Best practices
+
+- Only fast forward merges to _master_
+- Disallow pushing to _master_
+- Merge squash multiple changes in the short-lived branches
+- Rebasing _master_ against short-lived branch to keep it up to date is best, don't merge _master_ back to short-lived branch and then back again to _master_, effectively creating multiple merge commits and confusing history
+- Feature branches must be short-lived
+- Add the task id with an underscore followed by the short description of the task replacing the spaces by dashes. e.g. _feature/CORE-1_project-skeleton_
+- Keep [commit messages](#commit-message) as concise as possible, insofar as they make sense
+- Try and understand git commands and internals first before using graphic tools like [Visual Studio Code](https://code.visualstudio.com/docs/editor/versioncontrol), [Sourcetree](https://www.sourcetreeapp.com/) and [GitKraken](https://www.gitkraken.com/). There is nothing wrong with them, and in many cases they can be very helpful, especially when looking at history graphs and selecting staged file changes. However they are not a replacement for you understanding how git works and learning things like the difference between revert and reset. (Only the command-line process will be covered here, GUI tools are cool but you'll be alone in the wild)
+- Don't ever commit secrets of any kind to the repository
+
+**[^ back to top](#table-of-contents)**
+
+## Commit message
+
+The seven rules of a great git commit message:
+
+1. Separate subject from body with a blank line
+1. Limit the subject line to 50 characters
+1. Capitalize the subject line
+1. Do not end the subject line with a period
+1. Use the imperative mood in the subject line
+1. Wrap the body at 72 characters
+1. Use the body to explain what and why vs. how
+
+More info: [https://chris.beams.io/posts/git-commit/](https://chris.beams.io/posts/git-commit/)
+
+**[^ back to top](#table-of-contents)**
+
+## Semantic versioning
+
+Versions are denoted using a standard triplet of integers: `MAJOR.MINOR.PATCH`. The basic intent is that **MAJOR** versions are incompatible, large-scale upgrades of the API. **MINOR** versions retain source and binary compatibility with older minor versions, and changes in the **PATCH** level are perfectly compatible, forwards and backwards.
+
+```txt
++----- Major versions may introduce new features and change the old API in incompatible ways.
+| +--- Minor versions may introduce new features, but do not alter any of the previous API.
+| | +- Patch level changes could also be for correcting incorrect APIs.
+| | |  In this case, the previous patch release may be incompatible, but because of bugs.
+| | |
+x.y.z
+```
+
+### Node version syntax
+
+- Major releases: \* or x
+- Minor releases: 1 or 1.x or ^1.0.4
+- Patch releases: 1.0 or 1.0.x or ~1.0.4
+
+More info: [semver.org](https://semver.org)
+
+**[^ back to top](#table-of-contents)**
+
+## Workflows
+
+- Gitflow [GIT_FLOW.md](./workflows/GITFLOW.md)
+- Git Feature Branch [GIT_FEATURE_BRANCH.md](./workflows/GIT_FEATURE_BRANCH.md)
+- Git Trunk Based Development [GIT_TBD.md](./workflows/GIT_TBD.md)
+
+**[^ back to top](#table-of-contents)**
+
+## Git hooks
+
+Git hooks are scripts that run automatically every time a particular event occurs in a Git repository.
+
+Git hooks native directory: `.git/hooks/*`
+
+Custom git hooks scripts directory:
+
+- `.git-hooks/core/*`
+- `.git-hooks/gitflow/*`
+
+Include git hooks configuration references in the project:
+
+- core: `git config core.hooksPath .git-hooks/core`
+- gitflow: `git config gitflow.path.hooks .git-hooks/gitflow`
+
+More info:
+
+- [git hooks official documentation](https://git-scm.com/docs/githooks)
+- [git hooks tutorial by Atlassian](https://www.atlassian.com/git/tutorials/git-hooks)
+
+### Useful git hooks tools
+
+- JavaScript:
+  - [husky](https://www.npmjs.com/package/husky): git hooks made easy
+  - [lint-staged](https://www.npmjs.com/package/lint-staged): run linters against staged git files
+
+**[^ back to top](#table-of-contents)**
+
+## Pull Requests
+
+A pull request is a development process that provides a platform for discussion and review of a completed feature. Its purpose is to notify team members that the feature has been completed and it is open for discussion or modifications. The discussion usually occurs to improve the quality of the code; it is basically a code review process.
+
+### Before creating a pull request
+
+1. Maintain code consistency:
+   - If the project uses code formatting tools, e.g. prettier, it must be used.
+   - If the project has linter tools must be used.
+   - If the project has tests, it must be ensured that there are no side effects within the new feature.
+1. Commit code in your _feature_ branch. Note that a feature can have any number of commits.
+1. Keep PR size to a minimum, this will help to an easier understanding of the feature, fast review, and probably less conflicts.
+1. Commits made in the branch only reflect changes on the local machine. So, the commits need to be pushed to the remote branch.
+1. Then, you're ready to **rebase or merge** your branch. Rebasing is recommended if any new pull requests were merged after you had taken the _feature_ branch. Otherwise, if some conflicts happen or there are too many commits below you can merge into your branch.
+1. After rebasing, any **conflicts that arise need to be resolved**, and the code needs to be pushed back to the remote branch.
+1. Finally, it's time to create a pull request.
+1. When working on a _story_ branch and branching off of it, create a PR for every subtask of that story finished to merge into the _story_ branch.
+
+### Pull request process
+
+**Pull request creator:**
+
+1. When creating a pull request, you add a brief overview of the feature (if the project has a PR template, use it), select the branch to which the code needs to be merged, and select the assignee who will be reviewing it (this step can be skipped if the project is using an updated _CODEOWNERS_ file). If the PR is a working progress feature/story, you can create a pull request draft ([more information](https://help.github.com/en/articles/about-pull-requests#draft-pull-requests)) and keep working on it without publishing the PR and blocked to be merged.
+1. Once a pull request is created, it is open for discussion or modifications.
+1. Sometimes conflicts occur after creating a pull request, and you must resolve these conflicts.
+1. Notify other teammates when a PR is available and explain the priority level of it.
+1. Usually, the assigned person reviews the code, but it is not mandatory that only the assignee performs the review. Any team member can participate in the review process and give their feedback or discuss potential modifications to the code.
+1. Any feedback or modifications are added in the form of comments near the code line.
+1. The developer resolves comments and replies to the reviewer.
+1. This process continues until all comments are resolved.
+1. Once all discussions are resolved, the code is merged to the branch that was selected when the pull request was created using the _Squash and Merge_ option.
+
+**Pull request reviewer:**
+
+- Organize your time to make the code reviews. For example, when you start working and one hour before finishing your working day.
+- Add a label like "reviewing - \{\{full name\}\}" on GitHub to indicate that you have started a code review, remove it when you are finished and have left your feedback.
+  - **Note 1**: not a default label, you can create it on the fly and use as your own mark.
+- Aim to review a PR within 24 hours from creation.
+- Every developer is also a tester. Checks for code quality/errors/consistency, not functionality/design.
+- If a visual code review is not enough, try it locally.
+- Remember there is a human at the other end of a PR.
+- Use emojis to communicate tone. 👍
+- Give constructive feedback; praise if something is well done.
+- Be polite, be supportive, be understanding.
+
+**Note**: Pull requests can be made for any branch. Usually, pull requests are made for the source branch. Sometimes it is okay to close a pull request without merging it. This usually occurs when a feature is dropped.
+
+### Pull request template
+
+A pull request template is a file containing markdown text that is added to your pull request description when the pull request is created.
+
+Existing templates:
+
+- web Team [PULL_REQUEST_TEMPLATE-web.md](./templates/PULL_REQUEST_TEMPLATE-web.md)
+
+Creating a pull request template for a repository: [https://help.github.com/articles/creating-a-pull-request-template-for-your-repository/](https://help.github.com/articles/creating-a-pull-request-template-for-your-repository/)
+
+### Complete the pull request
+
+The way to merge the **features** and **_stories_** to the _develop_ branch (or **features** to parent _story_ branch) will be applying the _Squash and merge_ option.
+
+With this, the pull request's commits are squashed into a single commit. Instead of seeing all of a contributor's individual commits from a topic branch, the commits are combined into one commit and merged into the default branch.
+
+Commit squashing has the benefit of keeping your git history tidy and easier to digest than the alternative created by merge commits. Squashing retains the changes but omits the individual commits from history.
+
+A good example to do this is about the work-in-progress commits. They are helpful when working on a feature branch, but they aren't necessarily important to retain in the Git history. If you squash these commits into one commit while merging to the default branch, you can retain the original changes with a clear Git history.
+
+After completing a pull request, the branch merged must be deleted in order to keep our repository as clean as possible.
+
+If any updates must be done later related to the task or there is a bug related, a new branch will be created, and a new pull request will be started (using the same name if necessary).
+
+On this point, it's also good to keep clean our local repository, so you should also delete the branch in your local machine.
+
+```bash
+# Get a list of all the branches deleted on remote that you still have indexed:
+git remote prune origin
+
+# Remove a branch (or several) from your local repository:
+git branch -D branch-name-1 [branch-name-2]...
+```
+
+Use the param **-D** instead of **-d** to remove the branch. This is because of the _commits squashing_. After a squash and merge, the commit headers and references are updated and that's the reason for having to force the branch deletion.
+
+### Close a pull request
+
+In the other hand, sometimes we could close a pull request because it's not finally approved, because the feature has been cancelled, or for other reasons.
+
+In that case, we should first close the pull request from Github, and then, delete the branch to keep the repository clean.
+
+### Benefits of pull requests
+
+- Use this collaborative platform to discuss potential modifications to the code.
+- Improve code quality.
+- Simplify the process of receiving feedback from the reviewer.
+- Address feedback easily in-line near the relevant code.
+- Provide better stability for the code.
+
+**[^ back to top](#table-of-contents)**
+
+## Labels
+
+Labels on GitHub helps organize and prioritize the work. Apply labels to pull requests to signify priority, category, or any other useful information.
+
+Labels are tied to the repository they are created in, although when a repository is created a default set of labels is attached.
+
+Default labels are included in every new repository when the repository is created, but labels can be edited or deleted later.
+
+**Default labels:**
+
+| label name    | description                                                                                | color     |
+| ------------- | ------------------------------------------------------------------------------------------ | --------- |
+| bug           | Bug fix: non-breaking change which fixes an issue                                          | `#d73a4a` |
+| ci            | CI: GitHub Actions workflows                                                               | `#51c115` |
+| devops        | DevOps: Docker, Kubernetes, AWS, Terraform                                                 | `#7406db` |
+| documentation | Docs: documentation only changes                                                           | `#0075ca` |
+| feature       | New feature: non-breaking change which adds functionality                                  | `#ff9f00` |
+| hotfix        | Hotfix: non-breaking change which fixes an issue reported by QA                            | `#a81e37` |
+| refactor      | Refactoring: improve a current implementation without adding a new feature or fixing a bug | `#84e89d` |
+| release       | Release: fix changes on a release branch                                                   | `#4e5ec4` |
+| spike         | Spike: basic research to assess the impact of a new feature                                | `#85e5c5` |
+| test          | Test: adding missing tests or fixing existing ones                                         | `#e0d347` |
+
+**Project labels:**
+
+| label name                | description                                         |
+| ------------------------- | --------------------------------------------------- |
+| reviewing - \{\{full name\}\} | The pull request is being reviewed by \{\{full name\}\} |
+
+**[^ back to top](#table-of-contents)**
+
+## Useful commands
+
+- **show** remote name and url: `git remote -v`
+- **remove** the remote named _\{name\}_. All remote-tracking branches and configuration settings for the remote are removed: `git remote remove \{name\}`. Example: `git remote remove origin`
+- **adds** a remote named _\{name\}_ for the repository at _\{url\}_: `git remote add \{name\} \{url\}`. Example: `git remote add origin xxx`
+- **change** the URL of a remote repository keeping the same name: `git remote set-url \{name\} \{new-url}`. Example: `git remote set-url origin xxx`
+
+**[^ back to top](#table-of-contents)**
+
+## Useful resources
+
+- How to write a Git commit message: [https://chris.beams.io/posts/git-commit/](https://chris.beams.io/posts/git-commit/)
+- A successful Git branching model: [https://nvie.com/posts/a-successful-git-branching-model/](https://nvie.com/posts/a-successful-git-branching-model/)
+- Semantic versioning: [https://semver.org/](https://semver.org/)
+- Pull requests and git-flow: [https://blog.axosoft.com/pull-requests-gitflow/](https://blog.axosoft.com/pull-requests-gitflow/)
+- Creating a pull request template for your repository: [https://help.github.com/articles/creating-a-pull-request-template-for-your-repository/](https://help.github.com/articles/creating-a-pull-request-template-for-your-repository/)
+- Top 5 free courses to learn Git and GitHub: [https://hackernoon.com/top-5-free-courses-to-learn-git-and-github-best-of-lot-2f394c6533b0](https://hackernoon.com/top-5-free-courses-to-learn-git-and-github-best-of-lot-2f394c6533b0)
+
+### Talks
+
+- Code reviews: Una historia de Code Reviews en Invernalia (Spanish) [https://www.youtube.com/watch?v=8GfmPnROGJE](https://www.youtube.com/watch?v=8GfmPnROGJE)
+
+**[^ back to top](#table-of-contents)**
+
+
+[squash-merge]: ./assets/squash-merge.png

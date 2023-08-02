@@ -4,21 +4,25 @@ A mostly reasonable approach to TypeScript
 
 This style guide is mostly based on the standards that are currently prevalent in [JavaScript](../README.md), although some conventions may still be included or prohibited on a case-by-case basis.
 
+{/*
 ## Table of Contents
 
 1. [Naming Conventions](#naming-conventions)
 1. [`null` vs. `undefined`](#null-vs-undefined)
+1. [Formatting](#formatting)
 1. [Single vs. Double Quotes](#quotes)
 1. [Tabs vs. Spaces](#spaces)
 1. [Use semicolons](#semicolons)
 1. [Annotate Arrays as `Type[]`](#array)
+1. [Filename](#filename)
 1. [`type` vs `interface`](#type-vs-interface)
 1. [Unknown Type](#unknown-type)
 1. [Generics](#generics)
 1. [Barrel](#barrel)
 1. [Extending string-based Enums](#extending-string-based-enums)
 1. [Resources](#resources)
-
+1. [`==` or `===`](#-or-)
+*/}
 ## Naming Conventions
 
 ### Variable and Function
@@ -39,7 +43,7 @@ var fooVar;
 function barFunc() { }
 ```
 
-**[⬆ back to top](#table-of-contents)**
+**[^ back to top](#table-of-contents)**
 
 ### Class
 
@@ -73,7 +77,7 @@ class Foo {
 }
 ```
 
-**[⬆ back to top](#table-of-contents)**
+**[^ back to top](#table-of-contents)**
 
 ### Interface
 
@@ -99,7 +103,7 @@ interface Foo {
 }
 ```
 
-**[⬆ back to top](#table-of-contents)**
+**[^ back to top](#table-of-contents)**
 
 #### Data transfer object interfaces
 
@@ -128,7 +132,7 @@ interface Account extends AccountDTO {
 }
 ```
 
-**[⬆ back to top](#table-of-contents)**
+**[^ back to top](#table-of-contents)**
 
 ### Type
 
@@ -140,7 +144,7 @@ interface Account extends AccountDTO {
 
 > Reason: Similar to class
 
-**[⬆ back to top](#table-of-contents)**
+**[^ back to top](#table-of-contents)**
 
 ### Namespace
 
@@ -158,7 +162,7 @@ namespace Foo {
 }
 ```
 
-**[⬆ back to top](#table-of-contents)**
+**[^ back to top](#table-of-contents)**
 
 ### Enum
 
@@ -192,7 +196,7 @@ enum Color {
 }
 ```
 
-**[⬆ back to top](#table-of-contents)**
+**[^ back to top](#table-of-contents)**
 
 ## Null vs. Undefined
 
@@ -240,7 +244,19 @@ if (error === null)
 if (error)
 ```
 
-**[⬆ back to top](#table-of-contents)**
+**[^ back to top](#table-of-contents)**
+
+## Formatting
+The TypeScript compiler ships with a very nice formatting language service. Whatever output it gives by default is good enough to reduce the cognitive overload on the team.
+
+Use tsfmt to automatically format your code on the command line. Also, your IDE (atom/vscode/vs/sublime) already has formatting support built-in.
+
+Examples:
+```javascript
+// Space before type i.e. foo:<space>string
+const foo: string = "hello";
+```
+**[^ back to top](#table-of-contents)**
 
 ## Quotes
 
@@ -253,7 +269,7 @@ if (error)
 
 > Reason: These generally represent the intent of complex enough strings.
 
-**[⬆ back to top](#table-of-contents)**
+**[^ back to top](#table-of-contents)**
 
 ## Spaces
 
@@ -261,7 +277,7 @@ if (error)
 
 > Reason: More JavaScript teams do this (e.g. [airbnb](https://github.com/airbnb/javascript), [idiomatic](https://github.com/rwaldron/idiomatic.js), [standard](https://github.com/feross/standard), [npm](https://github.com/npm/npm), [node](https://github.com/nodejs/node), [google/angular](https://github.com/angular/angular/), [facebook/react](https://github.com/facebook/react)). The TypeScript/VSCode teams use 4 spaces but are definitely the exception in the ecosystem.
 
-**[⬆ back to top](#table-of-contents)**
+**[^ back to top](#table-of-contents)**
 
 ## Semicolons
 
@@ -269,7 +285,7 @@ if (error)
 
 > Reasons: Explicit semicolons helps language formatting tools give consistent results. Missing ASI (automatic semicolon insertion) can trip new devs e.g. `foo() \n (function(){})` will be a single statement (not two). TC39 [warning on this as well](https://github.com/tc39/ecma262/pull/1062). Example teams: [airbnb](https://github.com/airbnb/javascript), [idiomatic](https://github.com/rwaldron/idiomatic.js), [google/angular](https://github.com/angular/angular/), [facebook/react](https://github.com/facebook/react), [Microsoft/TypeScript](https://github.com/Microsoft/TypeScript/).
 
-**[⬆ back to top](#table-of-contents)**
+**[^ back to top](#table-of-contents)**
 
 ## Array
 
@@ -277,7 +293,18 @@ if (error)
 
 > Reasons: Its easier to read. Its used by the TypeScript team. Makes easier to know something is an array as the mind is trained to detect `[]`.
 
-**[⬆ back to top](#table-of-contents)**
+**[^ back to top](#table-of-contents)**
+
+## Filename
+Name files with `camelCase`. E.g. `utils.ts`, `map.ts` etc.
+
+> Reason: Conventional across many JS teams.
+
+When the file exports a component and your framework (like React) wants component to be PascalCased, use pascal case file name to match e.g. `Accordion.tsx`, `MyControl.tsx`. 
+
+> Reason: Helps with consistency (little overthought required) and its what the ecosystem is doing.
+
+**[^ back to top](#table-of-contents)**
 
 ## type vs. interface
 
@@ -304,7 +331,7 @@ class X implements FooBar {
 }
 ```
 
-**[⬆ back to top](#table-of-contents)**
+**[^ back to top](#table-of-contents)**
 
 ## Unknown Type
 
@@ -322,11 +349,11 @@ vAny.method();     // ok anything goes with any
 vUnknown.method(); // not ok, we don't know anything about this variable
 ```
 
-**[⬆ back to top](#table-of-contents)**
+**[^ back to top](#table-of-contents)**
 
 ## Generics
 
-The implementation of generics in Typescript give us the ability to pass in a range of types to a component, adding an extra layer of abstraction and re-usability to your code. Generics can be applied to functions, interfaces and classes in Typescript. More info: [TypeScript Generics](https://www.typescriptlang.org/docs/handbook/generics.html) and [Typescript Generics Explained](https://medium.com/@rossbulat/typescript-generics-explained-15c6493b510f).
+The implementation of generics in Typescript give us the ability to pass in a range of types to a component, adding an extra layer of abstraction and re-usability to your code. Generics can be applied to functions, interfaces and classes in Typescript. More info: [TypeScript Generics](https://www.typescriptlang.org/docs/handbook/2/generics.html) and [Typescript Generics Explained](https://medium.com/@rossbulat/typescript-generics-explained-15c6493b510f).
 
 ```javascript
 // bad
@@ -362,7 +389,7 @@ class Queue<T> {}
 class Queue<QueueType> {}
 ```
 
-**[⬆ back to top](#table-of-contents)**
+**[^ back to top](#table-of-contents)**
 
 ## Barrel
 
@@ -442,7 +469,7 @@ baz.setBaz();
 // etc. ...
 ```
 
-**[⬆ back to top](#table-of-contents)**
+**[^ back to top](#table-of-contents)**
 
 ## Extending string-based Enums
 
@@ -465,10 +492,14 @@ const AdvEvents = {
 type AdvEvents = (typeof AdvEvents)[keyof typeof AdvEvents];
 ```
 
-**[⬆ back to top](#table-of-contents)**
+**[^ back to top](#table-of-contents)**
+
+## `==` or `===`
+Both are [mostly safe for TypeScript users](https://www.youtube.com/watch?v=vBhRXMDlA18). I use `===` as that is what is used in the TypeScript codebase. 
+**[^ back to top](#table-of-contents)**
 
 ## Resources
 
 - [TypeScript StyleGuide and Coding Conventions](https://github.com/basarat/typescript-book/blob/master/docs/styleguide/styleguide.md)
 
-**[⬆ back to top](#table-of-contents)**
+**[^ back to top](#table-of-contents)**
