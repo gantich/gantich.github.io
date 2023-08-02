@@ -14,15 +14,13 @@ export default {
   darkMode: true,
   primaryHue: 300,
   navigation: false,
-  editLink: {
-    text: false,
-  },
   feedback: {
-    content: false,
+    content: null,
   },
   project: {
-    link: "https://github.com/shuding/nextra",
+    link: "https://github.com/gantich/gantich.github.io",
   },
+  docsRepositoryBase: 'https://github.com/gantich/gantich.github.io/blob/main',
   logo: (
     <svg
       viewBox="0 0 106.139 51.251"
@@ -32,8 +30,8 @@ export default {
     >
       <defs>
         <filter id="editing-vr">
-          <feFlood flood-color="#d8ebf9" flood-opacity=".7" result="c1" />
-          <feFlood flood-color="red" flood-opacity=".7" result="c3" />
+          <feFlood floodColor="#d8ebf9" floodOpacity=".7" result="c1" />
+          <feFlood floodColor="red" floodOpacity=".7" result="c3" />
           <feComposite
             operator="in"
             in="c1"
