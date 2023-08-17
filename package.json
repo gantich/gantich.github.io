@@ -1,21 +1,30 @@
 {
+  "name": "gantich.github.io",
+  "version": "1.0.4",
+  "description": "NextJS with Nextra docs theme",
+  "author": "Guillermo Antich",
+  "license": "ISC",
   "private": true,
   "scripts": {
     "dev": "next",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "bump": "npm version --no-git-tag-version",
+    "bump:major": "npm version major --force --no-git-tag-version",
+    "bump:minor": "npm version minor --force --no-git-tag-version",
+    "bump:patch": "npm version patch --force --no-git-tag-version",
+    "postbump": "git add package.json package-lock.json && git commit -m 'Bump version'"
   },
   "dependencies": {
     "gray-matter": "^4.0.3",
     "next": "latest",
     "nextra": "^2.0.0-beta.5",
-    "nextra-theme-blog": "^2.0.0-beta.5",
     "nextra-theme-docs": "^2.10.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "rss": "^1.2.2"
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@svgr/webpack": "^8.0.1",
     "@types/node": "^18.0.0",
     "@types/react": "^18.0.14",
     "@types/react-dom": "^18.0.5",
