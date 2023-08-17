@@ -1,30 +1,23 @@
 import { Cards, Card } from 'nextra/components'
-import { FilesIcon } from '@components/icons'
+import { 
+  CodeIcon, 
+  FileIcon, 
+  FilesIcon, 
+  GearIcon, 
+  NewsletterIcon 
+} from '@components/icons'
 
 # Bookmarks
 
 ## Available categories
 
 <Cards>
-  <Card icon={<FilesIcon />} title="Tools" href="./bookmarks/tools" />
-  <Card icon={<FilesIcon />} title="Assets" href="./bookmarks/assets" />
-  <Card icon={<FilesIcon />} title="Articles" href="./bookmarks/articles" />
-  <Card icon={<FilesIcon />} title="Guidelines" href="./bookmarks/guidelines" />
+  <Card icon={<GearIcon />} title="Tools" href="./bookmarks/tools" />
+  <Card icon={<FileIcon />} title="Assets" href="./bookmarks/assets" />
+  <Card icon={<NewsletterIcon />} title="Articles" href="./bookmarks/articles" />
+  <Card icon={<CodeIcon />} title="Guidelines" href="./bookmarks/guidelines" />
   <Card icon={<FilesIcon />} title="Documentation" href="./bookmarks/documentation" />
 </Cards>
-
-
-## Articles / guidelines
-
-* https://ponyfoo.com/
-> Articles, guides, news
-* https://2ality.com/
-> Dr. Axel Rauschmayer, JS and TS monster
-* https://dev.to/
-
-## Documentation
-
-* [TypeScript Documentation - Handbook](https://www.typescriptlang.org/docs/handbook/)
 
 ## Pending...
 * https://github.com/bevacqua/js
