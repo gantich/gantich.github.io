@@ -6,7 +6,7 @@ b) Change the author information after making a commit (i.e. for historical comm
 
 Let's look at both cases in detail:
 
-## Changing Actual Your Git Author Identity
+## Changing Actual Your Git Author Identity
 
 There are three ways to change your committer identity in Git. All of these methods only affect future commits, not past ones!
 
